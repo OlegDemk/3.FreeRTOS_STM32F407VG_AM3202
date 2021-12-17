@@ -138,7 +138,7 @@ const osThreadAttr_t bme280_attributes = {
 };
 /* Definitions for AM2302 */
 osThreadId_t AM2302Handle;
-uint32_t AM2302Buffer[ 128 ];
+uint32_t AM2302Buffer[ 1024 ];
 osStaticThreadDef_t AM2302ControlBlock;
 const osThreadAttr_t AM2302_attributes = {
   .name = "AM2302",
@@ -851,7 +851,7 @@ void Start_bme280(void *argument)
   /* Infinite loop */
 
 	QUEUE_t msg;												// Make a queue
-	memset(msg.Buf, 0, sizeof(msg.Buf));						// Fill in buff '\0'
+	//memset(msg.Buf, 0, sizeof(msg.Buf));						// Fill in buff '\0'
 
 	uint16_t STATUS=0;
 	uint16_t addres_device = 0x76;  		 	// BME280
@@ -955,19 +955,18 @@ void Start_AM2302(void *argument)
 {
   /* USER CODE BEGIN Start_AM2302 */
   /* Infinite loop */
+	QUEUE_t msg;												// Make a queue
+	memset(msg.Buf, 0, sizeof(msg.Buf));						// Fill in buff '\0'
 
 	GPIOC->MODER |= GPIO_MODER_MODER1_0;            // Output mode GPIOC0
 	GPIOC->OTYPER &= ~GPIO_OTYPER_OT_1;             // Push-pull mode
 	GPIOC->OSPEEDR |= GPIO_OSPEEDER_OSPEEDR0_1;     // Speed
 	GPIOC->ODR ^= 0x02; 							// set GPIOC pin 1 on high
 	osDelay(2000);									// First init must be 2 seconds delay
-	//HAL_Delay(2000);
-	//am2302_measure(); 							// For fill in i2c_device.AM2302_ready_status
-	//HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_SET);
+
   for(;;)
   {
-
-	  osDelay(3000);
+	  osDelay(3000);			// Measure every 3 seconds
 	  //----------------------------------------------------------------------------------------
 	  /*
 	   * Function make us delay
@@ -1013,43 +1012,10 @@ void Start_AM2302(void *argument)
 	  	GPIOC->OTYPER &= ~GPIO_OTYPER_OT_1;             // Push-pull mode
 	  	GPIOC->OSPEEDR |= GPIO_OSPEEDER_OSPEEDR0_1;     // Speed
 
-	  	// Make output pin C1
 	  	GPIOC->ODR &= ~0x02;		// Low level
-	  	// DelayMicro(18000);
-	  	osDelay(18);    // WORK !!!!!!!!!!!!!!!
-	  	//HAL_GPIO_TogglePin(GPIOD, LD3_Pin);
-	  	//HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_RESET);
-	  	//DelayMicro(20);   // Must be 18000
-	    // delay_us(100);   ЗГЕНЕРУВАТИ !МІКРОСЕКУНДНИЙ СИГНАЛ СУКА !!!!!
-	  	//HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_SET);
-	  	//while(!delay_us(18000));
+	  	osDelay(18);
 	  	GPIOC->ODR ^= 0x02;			// High level
 	  	delay_us(40);
-	  	//osDelay(3000);
-//	  	int l = 0;
-//	  	for(l =0; l <= 10; l++)
-//	  	{
-//	  		//DelayMicro(100);
-//	  		HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_SET);
-//	  		delay_us(10);
-//	  		HAL_GPIO_WritePin(GPIOD, LD4_Pin, GPIO_PIN_RESET);
-//	  		delay_us(10);
-//	  		//HAL_GPIO_TogglePin(GPIOD, LD4_Pin);
-//	  	}
-
-
-//	  	HAL_TIM_Base_Start_IT(&htim8);
-	  	//HAL_TIM_Base_Start_IT(&htim2);
-	  	///////////////////////////////////////////////////////////////////////////////
-	  	//HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_RESET);  // HAL_GPIO_TogglePin(GPIOD, LD3_Pin);
-	  	// Generate pause 10 uS
-	  	// Also turn off sheduler
-
-
-	  	// Turn on sheduler
-	  	//HAL_GPIO_WritePin(GPIOD, LD3_Pin, GPIO_PIN_SET);
-	  	///////////////////////////////////////////////////////////////////////////////
-	  	// DelayMicro(39);					// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 	  	// Make input pin C1
 	  	GPIOC->MODER &= ~0x04;  	// Set Pin C1 Input   (MODER GPIOC_1 Must be 00)
@@ -1065,7 +1031,7 @@ void Start_AM2302(void *argument)
 	  	}
 
 	  	delay_us(80);
-	  	//  DelayMicro(80);						// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
 	  	if(!(GPIOC->IDR & GPIO_IDR_ID1))  	// Sensor must pull up
 	  	{
 	  		get_data_status = false; 					// Error. Sensor not response
@@ -1096,24 +1062,39 @@ void Start_AM2302(void *argument)
 
 	  		temper = (float)((*(uint16_t*)(data+1)) & 0x3FFF) /10;
 	  		if((*(uint16_t*)(data+1)) & 0x8000) temper  *= -1.0;
-
-	  		//i2c_device.AM2302_temperature = temper;
-
 	  		hum = (float)(*(int16_t*)(data+3)) / 10;
-	  		//i2c_device.AM2302_humidity = hum;
 
-	  		//i2c_device.AM2302_ready_status = true;
+	  		// Write data in queue
+	  		char str_t_and_h[50] = {0};
+	  		char str_t_and_h_buffer[12] = {0};
+
+	  		memset(msg.Buf, 0, sizeof(msg.Buf));								// Fill in buff '\0'
+
+	  		// Write T and  H P in str_t_h buffer
+	  		// Write TEMPERATURE
+	  		strcat(str_t_and_h, "AM2302: \n\r");
+	  		strcat(str_t_and_h, "T: ");
+	  		sprintf(str_t_and_h_buffer, "%f", temper);
+	  		strcat(str_t_and_h, str_t_and_h_buffer);
+	  		strcat(str_t_and_h, " C\n\r");
+
+	  		// Write HUMIDYTY
+	  		memset(str_t_and_h_buffer, 0, sizeof(str_t_and_h_buffer));
+
+	  		strcat(str_t_and_h, "H: ");
+	  		sprintf(str_t_and_h_buffer, "%f", hum);
+	  		strcat(str_t_and_h, str_t_and_h_buffer);
+	  		strcat(str_t_and_h, " C\n\r\0");
+
+	  		strcat(msg.Buf, str_t_and_h);										//	Write main buffer with data in queue
+
+	  		osMessageQueuePut(UARTQueueHandle, &msg, 0, osWaitForever);			// Write data on queue (In will print on StartUART_Task task)
 	  	}
 	  	else
 	  	{
 
 	  		//i2c_device.AM2302_ready_status = false;
 	  	}
-
-
-
-
-
   }
   /* USER CODE END Start_AM2302 */
 }
@@ -1130,18 +1111,17 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   /* USER CODE BEGIN Callback 0 */
 
-	if(htim->Instance == TIM10) 				//check if the interrupt comes from TIM1
+	if(htim->Instance == TIM10) 				//check if the interrupt comes from TIM10
 	{
-		//HAL_GPIO_TogglePin(GPIOD, LD6_Pin);		// Blue LED
-
 		if(tim_val > 0)
 		{
 			tim_val = tim_val - 1;
 		}
-		else
+		else		// For avoid overflow variable
 		{
 			tim_val = 0;
 		}
+
 
 	}
 
