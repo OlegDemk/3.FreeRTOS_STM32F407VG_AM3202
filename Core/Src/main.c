@@ -1106,6 +1106,7 @@ void Start_AM2302(void *argument)
 	  	}
 	  	else
 	  	{
+
 	  		//i2c_device.AM2302_ready_status = false;
 	  	}
 
