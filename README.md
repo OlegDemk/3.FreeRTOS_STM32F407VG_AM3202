@@ -18,3 +18,6 @@ In timmer_handler(HAL_TIM_PeriodElapsedCallback) decrement "tim_val" from start 
 Data transmitting over Virtual COM port. 115200.
 
 ![alt text](https://github.com/OlegDemk/3.FreeRTOS_STM32F407VG_AM3202/blob/main/screenshot.png)
+
+DATA SCREEN:
+![alt text](https://github.com/OlegDemk/3.FreeRTOS_STM32F407VG_AM3202/blob/main/data_screen.png)
