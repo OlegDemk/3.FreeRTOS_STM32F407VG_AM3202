@@ -15,8 +15,12 @@ RM := rm -rf
 -include Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/subdir.mk
 -include Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/subdir.mk
 -include Middlewares/Third_Party/FreeRTOS/Source/subdir.mk
+-include Middlewares/Third_Party/FatFs/src/option/subdir.mk
+-include Middlewares/Third_Party/FatFs/src/subdir.mk
 -include Middlewares/ST/STM32_USB_Device_Library/Core/Src/subdir.mk
 -include Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Src/subdir.mk
+-include FATFS/Target/subdir.mk
+-include FATFS/App/subdir.mk
 -include Drivers/STM32F4xx_HAL_Driver/Src/subdir.mk
 -include Core/Startup/subdir.mk
 -include Core/Src/BME280/subdir.mk
@@ -44,34 +48,34 @@ $(wildcard ../makefile.init) \
 $(wildcard ../makefile.targets) \
 
 
-BUILD_ARTIFACT_NAME := 3.FreeRTOS_STM32F407VG_AM2302
+BUILD_ARTIFACT_NAME := 4.FreeRTOS_STM32F407VG_microSD
 BUILD_ARTIFACT_EXTENSION := elf
 BUILD_ARTIFACT_PREFIX :=
 BUILD_ARTIFACT := $(BUILD_ARTIFACT_PREFIX)$(BUILD_ARTIFACT_NAME)$(if $(BUILD_ARTIFACT_EXTENSION),.$(BUILD_ARTIFACT_EXTENSION),)
 
 # Add inputs and outputs from these tool invocations to the build variables 
 EXECUTABLES += \
-3.FreeRTOS_STM32F407VG_AM2302.elf \
+4.FreeRTOS_STM32F407VG_microSD.elf \
 
 SIZE_OUTPUT += \
 default.size.stdout \
 
 OBJDUMP_LIST += \
-3.FreeRTOS_STM32F407VG_AM2302.list \
+4.FreeRTOS_STM32F407VG_microSD.list \
 
 OBJCOPY_BIN += \
-3.FreeRTOS_STM32F407VG_AM2302.bin \
+4.FreeRTOS_STM32F407VG_microSD.bin \
 
 
 # All Target
 all: main-build
 
 # Main-build Target
-main-build: 3.FreeRTOS_STM32F407VG_AM2302.elf secondary-outputs
+main-build: 4.FreeRTOS_STM32F407VG_microSD.elf secondary-outputs
 
 # Tool invocations
-3.FreeRTOS_STM32F407VG_AM2302.elf: $(OBJS) $(USER_OBJS) /home/odemki/work/projects/my_projects/STM32/projects/FreeRTOS/3.FreeRTOS_STM32F407VG_AM3202/STM32F407VGTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "3.FreeRTOS_STM32F407VG_AM2302.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/home/odemki/work/projects/my_projects/STM32/projects/FreeRTOS/3.FreeRTOS_STM32F407VG_AM3202/STM32F407VGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="3.FreeRTOS_STM32F407VG_AM2302.map" -Wl,--gc-sections -static -u_print_float --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -Wl,--start-group -lc -lm -Wl,--end-group
+4.FreeRTOS_STM32F407VG_microSD.elf: $(OBJS) $(USER_OBJS) /home/odemki/work/projects/my_projects/STM32/projects/FreeRTOS/4.FreeRTOS_STM32F407VG_microSD/STM32F407VGTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "4.FreeRTOS_STM32F407VG_microSD.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/home/odemki/work/projects/my_projects/STM32/projects/FreeRTOS/4.FreeRTOS_STM32F407VG_microSD/STM32F407VGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="4.FreeRTOS_STM32F407VG_microSD.map" -Wl,--gc-sections -static -u_print_float --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -80,19 +84,19 @@ default.size.stdout: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
 	@echo 'Finished building: $@'
 	@echo ' '
 
-3.FreeRTOS_STM32F407VG_AM2302.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "3.FreeRTOS_STM32F407VG_AM2302.list"
+4.FreeRTOS_STM32F407VG_microSD.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "4.FreeRTOS_STM32F407VG_microSD.list"
 	@echo 'Finished building: $@'
 	@echo ' '
 
-3.FreeRTOS_STM32F407VG_AM2302.bin: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-objcopy  -O binary $(EXECUTABLES) "3.FreeRTOS_STM32F407VG_AM2302.bin"
+4.FreeRTOS_STM32F407VG_microSD.bin: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-objcopy  -O binary $(EXECUTABLES) "4.FreeRTOS_STM32F407VG_microSD.bin"
 	@echo 'Finished building: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) $(SIZE_OUTPUT)$(OBJDUMP_LIST)$(EXECUTABLES)$(OBJS)$(S_DEPS)$(S_UPPER_DEPS)$(C_DEPS)$(OBJCOPY_BIN) 3.FreeRTOS_STM32F407VG_AM2302.elf
+	-$(RM) $(SIZE_OUTPUT)$(OBJDUMP_LIST)$(EXECUTABLES)$(OBJS)$(S_DEPS)$(S_UPPER_DEPS)$(C_DEPS)$(OBJCOPY_BIN) 4.FreeRTOS_STM32F407VG_microSD.elf
 	-@echo ' '
 
 secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST) $(OBJCOPY_BIN)
